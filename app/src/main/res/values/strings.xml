@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Office Suite</string>
+    <string name="search_hint">Search all documents…</string>
+    <string name="storage_internal">Internal Storage</string>
+    <string name="storage_samples">Sample Documents</string>
+    <string name="permission_title">Storage Access Required</string>
+    <string name="permission_desc">To scan and open your office documents and PDFs, please grant storage permission.</string>
+    <string name="grant_permission">Grant Access</string>
+    <string name="empty_folder">No documents found</string>
+    <string name="no_search_results">No matching documents found</string>
+</resources>

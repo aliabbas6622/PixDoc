@@ -1,0 +1,8 @@
+{
+  "name": "Remix Office Suite",
+  "description": "All-in-one Office Suite \u0026 Document Viewer like WPS Office. View, read, and convert PDF, Word (DOCX), Excel (XLSX, CSV), PowerPoint (PPTX), and Text files with built-in document conversion tools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
