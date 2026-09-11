@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Office Suite</string>
+    <string name="app_name">PixDoc</string>
     <string name="search_hint">Search all documents…</string>
     <string name="storage_internal">Internal Storage</string>
     <string name="storage_samples">Sample Documents</string>
