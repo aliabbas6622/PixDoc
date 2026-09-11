@@ -1,6 +1,7 @@
 package com.pixdoc.data.model
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Audiotrack
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Description
@@ -43,7 +44,7 @@ enum class FileType(
     AUDIO("Audio", Icons.Filled.Audiotrack, ColorAudio),
     VIDEO("Video", Icons.Filled.Movie, ColorVideo),
     ARCHIVE("Archive", Icons.Filled.Archive, ColorArchive),
-    OTHER("File", Icons.Filled.InsertDriveFile, ColorUnknown);
+    OTHER("File", Icons.AutoMirrored.Filled.InsertDriveFile, ColorUnknown);
 
     companion object {
         fun fromExtension(ext: String, isDir: Boolean): FileType {

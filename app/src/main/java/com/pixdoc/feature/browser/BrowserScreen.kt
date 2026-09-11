@@ -33,6 +33,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.DriveFileMove
+import androidx.compose.material.icons.automirrored.filled.NoteAdd
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -261,7 +264,7 @@ fun BrowserScreen(
                                 modifier = Modifier.testTag("toggle_view_mode_button")
                             ) {
                                 Icon(
-                                    if (uiState.isGridView) Icons.Default.ViewList else Icons.Default.GridView,
+                                    if (uiState.isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
                                     contentDescription = "Toggle View"
                                 )
                             }
@@ -296,7 +299,7 @@ fun BrowserScreen(
                                 )
                                 DropdownMenuItem(
                                     text = { Text("New File") },
-                                    leadingIcon = { Icon(Icons.Default.NoteAdd, contentDescription = null) },
+                                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.NoteAdd, contentDescription = null) },
                                     onClick = {
                                         showMoreMenu = false
                                         viewModel.showDialog(DialogState.CreateFile)
@@ -384,7 +387,7 @@ fun BrowserScreen(
                         IconButton(onClick = {
                             viewModel.showDialog(DialogState.Move(selectedFiles))
                         }) {
-                            Icon(Icons.Default.DriveFileMove, contentDescription = "Move selected")
+                            Icon(Icons.AutoMirrored.Filled.DriveFileMove, contentDescription = "Move selected")
                         }
                         IconButton(onClick = {
                             viewModel.showDialog(DialogState.Copy(selectedFiles))
@@ -1084,7 +1087,7 @@ private fun EmptyStateScreen(
                         Text("New Folder")
                     }
                     OutlinedButton(onClick = onCreateFile) {
-                        Icon(Icons.Default.NoteAdd, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(Icons.AutoMirrored.Filled.NoteAdd, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
                         Text("New File")
                     }

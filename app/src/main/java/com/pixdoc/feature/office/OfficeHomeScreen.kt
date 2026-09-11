@@ -24,6 +24,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
@@ -139,7 +141,7 @@ fun OfficeHomeScreen(
                         }
                         IconButton(onClick = { viewModel.toggleViewMode() }) {
                             Icon(
-                                if (uiState.viewMode == ViewMode.LIST) Icons.Filled.GridView else Icons.Filled.ViewList,
+                                if (uiState.viewMode == ViewMode.LIST) Icons.Filled.GridView else Icons.AutoMirrored.Filled.ViewList,
                                 contentDescription = "Toggle View"
                             )
                         }
@@ -316,7 +318,7 @@ fun OfficeHomeScreen(
                     )
                     DropdownMenuItem(
                         text = { Text("New Note (.txt)") },
-                        leadingIcon = { Icon(Icons.Filled.Notes, contentDescription = null, tint = ColorText) },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = null, tint = ColorText) },
                         onClick = {
                             showCreateMenu = false
                             viewModel.showDialog(OfficeDialog.CreateDoc("txt"))
