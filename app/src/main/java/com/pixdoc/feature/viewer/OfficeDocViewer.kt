@@ -123,8 +123,14 @@ fun DocxViewer(file: File) {
         return
     }
 
-    if (error != null || paragraphs.isEmpty()) {
-        UnsupportedDocFallback(file, message = error ?: "No document content found")
+    val parseError = error
+    if (parseError != null) {
+        UnsupportedDocFallback(file, message = parseError)
+        return
+    }
+    if (paragraphs.isEmpty()) {
+        // Nothing parsed (e.g. image-only or unusual docx) — offer external viewer
+        UnsupportedDocFallback(file, message = "No text content found in this document")
         return
     }
 

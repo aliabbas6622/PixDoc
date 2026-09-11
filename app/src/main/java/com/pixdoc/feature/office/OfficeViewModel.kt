@@ -70,6 +70,9 @@ class OfficeViewModel @JvmOverloads constructor(
     private val _uiState = MutableStateFlow(OfficeUiState())
     val uiState: StateFlow<OfficeUiState> = _uiState.asStateFlow()
 
+    /** Cached full scan result — filters run against this without touching the filesystem */
+    private var documentCache: List<FileItem> = emptyList()
+
     init {
         loadAllData()
     }
@@ -96,17 +99,17 @@ class OfficeViewModel @JvmOverloads constructor(
 
     fun selectCategory(category: DocumentCategory) {
         _uiState.update { it.copy(selectedCategory = category) }
-        refreshDocuments()
+        applyDocumentFilters()
     }
 
     fun toggleFavoritesFilter() {
         _uiState.update { it.copy(showFavoritesOnly = !it.showFavoritesOnly) }
-        refreshDocuments()
+        applyDocumentFilters()
     }
 
     fun updateSearchQuery(query: String) {
         _uiState.update { it.copy(searchQuery = query) }
-        refreshDocuments()
+        applyDocumentFilters()
     }
 
     fun toggleViewMode() {
@@ -117,7 +120,7 @@ class OfficeViewModel @JvmOverloads constructor(
 
     fun setSortOption(sortOption: SortOption) {
         _uiState.update { it.copy(sortOption = sortOption) }
-        refreshDocuments()
+        applyDocumentFilters()
     }
 
     fun showDialog(dialog: OfficeDialog?) {
@@ -160,46 +163,75 @@ class OfficeViewModel @JvmOverloads constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val state = _uiState.value
-                val rawDocs = repository.scanDocuments(
-                    category = state.selectedCategory,
-                    sortOption = state.sortOption,
-                    searchQuery = state.searchQuery
-                ).first()
-
-                val docs = if (state.showFavoritesOnly) {
-                    rawDocs.filter { repository.isFavorite(it.path) }
-                } else {
-                    rawDocs
-                }
-
-                // Also compute counts across categories
-                val allDocs = repository.scanDocuments(
+                // Single filesystem scan; category/search/sort filtering below is in-memory
+                documentCache = repository.scanDocuments(
                     category = DocumentCategory.ALL,
-                    sortOption = state.sortOption,
+                    sortOption = SortOption(SortField.NAME, ascending = true),
                     searchQuery = ""
                 ).first()
 
-                val counts = mutableMapOf<DocumentCategory, Int>()
-                counts[DocumentCategory.ALL] = allDocs.size
-                for (cat in DocumentCategory.values()) {
-                    if (cat != DocumentCategory.ALL) {
-                        counts[cat] = allDocs.count { doc -> cat.matches(doc.extension) }
-                    }
-                }
-
-                _uiState.update {
-                    it.copy(
-                        documents = docs,
-                        categoryCounts = counts,
-                        isLoading = false
-                    )
-                }
+                applyDocumentFilters(showLoading = false)
             } catch (e: Exception) {
                 e.printStackTrace()
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
+    }
+
+    /**
+     * Fast in-memory filtering over the cached scan result. No filesystem access,
+     * so switching category chips / typing in search / changing sort is instant.
+     */
+    private fun applyDocumentFilters(showLoading: Boolean = false) {
+        if (showLoading) _uiState.update { it.copy(isLoading = true) }
+        val state = _uiState.value
+
+        val categoryFiltered = documentCache.filter { doc ->
+            state.selectedCategory.matches(doc.extension)
+        }
+
+        val searchFiltered = if (state.searchQuery.isBlank()) {
+            categoryFiltered
+        } else {
+            val q = state.searchQuery.trim().lowercase()
+            categoryFiltered.filter { it.name.lowercase().contains(q) }
+        }
+
+        val docs = if (state.showFavoritesOnly) {
+            searchFiltered.filter { repository.isFavorite(it.path) }
+        } else {
+            searchFiltered
+        }
+
+        val sorted = sortDocuments(docs, state.sortOption)
+
+        // Category counts computed from the full cache (no rescan)
+        val counts = mutableMapOf<DocumentCategory, Int>()
+        counts[DocumentCategory.ALL] = documentCache.size
+        for (cat in DocumentCategory.values()) {
+            if (cat != DocumentCategory.ALL) {
+                counts[cat] = documentCache.count { doc -> cat.matches(doc.extension) }
+            }
+        }
+
+        _uiState.update {
+            it.copy(
+                documents = sorted,
+                categoryCounts = counts,
+                isLoading = false
+            )
+        }
+    }
+
+    private fun sortDocuments(items: List<FileItem>, sortOption: SortOption): List<FileItem> {
+        val comparator: Comparator<FileItem> = when (sortOption.field) {
+            SortField.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.name }
+            SortField.DATE -> compareBy { it.lastModified }
+            SortField.SIZE -> compareBy { it.size }
+            SortField.TYPE -> compareBy { it.fileType.name }
+        }
+        val effective = if (sortOption.ascending) comparator else comparator.reversed()
+        return items.sortedWith(effective)
     }
 
     fun loadAllData() {

@@ -5,6 +5,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -64,7 +66,17 @@ class MainActivity : ComponentActivity() {
                 }
 
                 LaunchedEffect(Unit) {
-                    permissionLauncher.launch(permissionsToRequest)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        // Android 11+: request All-Files-Access so real user documents
+                        // (Download, Documents, etc.) are visible to the file scanner
+                        if (!Environment.isExternalStorageManager()) {
+                            requestAllFilesAccess()
+                        } else {
+                            officeViewModel.setPermissionState(true)
+                        }
+                    } else {
+                        permissionLauncher.launch(permissionsToRequest)
+                    }
                 }
 
                 Surface(
@@ -76,6 +88,31 @@ class MainActivity : ComponentActivity() {
                         initialViewerPath = initialViewerPath
                     )
                 }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Re-check All-Files-Access when the user returns from the settings screen
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
+            officeViewModel.setPermissionState(true)
+        }
+    }
+
+    private fun requestAllFilesAccess() {
+        try {
+            startActivity(
+                Intent(
+                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                    Uri.parse("package:$packageName")
+                )
+            )
+        } catch (e: Exception) {
+            try {
+                startActivity(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION))
+            } catch (e2: Exception) {
+                e2.printStackTrace()
             }
         }
     }
