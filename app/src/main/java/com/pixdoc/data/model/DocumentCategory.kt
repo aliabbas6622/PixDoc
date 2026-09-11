@@ -76,11 +76,12 @@ enum class DocumentCategory(
 
     fun matches(fileExtension: String): Boolean {
         if (extensions == null) {
-            // "ALL" matches all office, document, and image formats
+            // "ALL" matches document formats only — images are excluded so they
+            // don't clutter the Documents list (use the Images category for those)
             val allExts = setOf(
                 "pdf", "docx", "doc", "xlsx", "xls", "csv",
                 "pptx", "ppt", "txt", "md", "rtf", "log", "json",
-                "kt", "java", "jpg", "jpeg", "png", "webp", "bmp"
+                "kt", "java"
             )
             return allExts.contains(fileExtension.lowercase())
         }
