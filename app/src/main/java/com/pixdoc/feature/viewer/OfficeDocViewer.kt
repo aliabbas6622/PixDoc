@@ -582,6 +582,9 @@ fun UnsupportedDocFallback(
 
 // --- Parsers ---
 
+/** XmlPullParser reports prefixed tags like "w:t" — strip to the local name */
+private fun XmlPullParser.localName(): String = name.substringAfterLast(':')
+
 private fun parseDocx(file: File): List<DocParagraph> {
     val paragraphs = mutableListOf<DocParagraph>()
     ZipInputStream(FileInputStream(file)).use { zis ->
@@ -602,7 +605,7 @@ private fun parseDocx(file: File): List<DocParagraph> {
                 while (eventType != XmlPullParser.END_DOCUMENT) {
                     when (eventType) {
                         XmlPullParser.START_TAG -> {
-                            when (parser.name) {
+                            when (parser.localName()) {
                                 "p" -> {
                                     currentText = StringBuilder()
                                     isBold = false
@@ -625,7 +628,7 @@ private fun parseDocx(file: File): List<DocParagraph> {
                             }
                         }
                         XmlPullParser.END_TAG -> {
-                            if (parser.name == "p") {
+                            if (parser.localName() == "p") {
                                 val clean = currentText.toString().trim()
                                 if (clean.isNotEmpty()) {
                                     val isBullet = clean.startsWith("•") || clean.startsWith("-")
@@ -668,7 +671,7 @@ private fun parseXlsx(file: File): SpreadsheetData {
                 parser.setInput(zis, "UTF-8")
                 var eventType = parser.eventType
                 while (eventType != XmlPullParser.END_DOCUMENT) {
-                    if (eventType == XmlPullParser.START_TAG && parser.name == "t") {
+                    if (eventType == XmlPullParser.START_TAG && parser.localName() == "t") {
                         sharedStrings.add(parser.nextText())
                     }
                     eventType = parser.next()
@@ -695,7 +698,7 @@ private fun parseXlsx(file: File): SpreadsheetData {
                 while (eventType != XmlPullParser.END_DOCUMENT) {
                     when (eventType) {
                         XmlPullParser.START_TAG -> {
-                            when (parser.name) {
+                            when (parser.localName()) {
                                 "row" -> currentRow = mutableListOf()
                                 "c" -> {
                                     val type = parser.getAttributeValue(null, "t")
@@ -714,7 +717,7 @@ private fun parseXlsx(file: File): SpreadsheetData {
                             }
                         }
                         XmlPullParser.END_TAG -> {
-                            if (parser.name == "row") {
+                            if (parser.localName() == "row") {
                                 if (currentRow.isNotEmpty()) {
                                     rows.add(currentRow)
                                 }
@@ -765,7 +768,7 @@ private fun parsePptx(file: File): List<PresentationSlide> {
                 val bullets = mutableListOf<String>()
 
                 while (eventType != XmlPullParser.END_DOCUMENT) {
-                    if (eventType == XmlPullParser.START_TAG && parser.name == "t") {
+                    if (eventType == XmlPullParser.START_TAG && parser.localName() == "t") {
                         val text = parser.nextText().trim()
                         if (text.isNotEmpty()) {
                             if (title.isEmpty()) {

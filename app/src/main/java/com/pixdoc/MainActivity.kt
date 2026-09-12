@@ -13,12 +13,30 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -79,14 +97,22 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                val uiState by officeViewModel.uiState.collectAsState()
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    OfficeSuiteApp(
-                        viewModel = officeViewModel,
-                        initialViewerPath = initialViewerPath
-                    )
+                    if (uiState.permissionGranted) {
+                        OfficeSuiteApp(
+                            viewModel = officeViewModel,
+                            initialViewerPath = initialViewerPath
+                        )
+                    } else {
+                        PermissionRationaleScreen(
+                            onRequest = { requestAllFilesAccess() }
+                        )
+                    }
                 }
             }
         }
@@ -191,6 +217,47 @@ fun OfficeSuiteApp(
                 filePath = path,
                 onNavigateBack = { navController.popBackStack() }
             )
+        }
+    }
+}
+
+@Composable
+fun PermissionRationaleScreen(onRequest: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(72.dp)
+        )
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = "Storage Access Required",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            text = "PixDoc needs access to All Files to find and open your documents " +
+                "(PDF, Word, Excel, PowerPoint) stored on this device.\n\n" +
+                "Tap the button below, then enable \"Allow access to manage all files\".",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(28.dp))
+        Button(
+            onClick = onRequest,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Grant Access")
         }
     }
 }
